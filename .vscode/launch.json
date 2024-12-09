@@ -1,0 +1,51 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Knowledge Generate",
+            "cwd": "${workspaceFolder}/VL_captioning",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "knowledge_generate.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Candidate Generate",
+            "cwd": "${workspaceFolder}/VL_captioning",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "candidate_generate.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Auto Rationale Generate",
+            "cwd": "${workspaceFolder}/VL_captioning",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "auto_rationale_generate.py",
+            "console": "integratedTerminal",
+        },
+        {
+            "name": "Mech Rationale Generate",
+            "cwd": "${workspaceFolder}/VL_captioning",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "mech_rationale_generate.py",
+            "console": "integratedTerminal",
+            // "args": [
+            //     "--answer_file=the/path/to/candidate.json"
+            // ]
+        },
+        {
+            "name": "Answer Fusion",
+            "cwd": "${workspaceFolder}/VL_captioning",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "answer_fusion.py",
+            "console": "integratedTerminal",
+        }
+    ]
+}

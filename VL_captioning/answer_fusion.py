@@ -1,7 +1,8 @@
 import argparse
 import os
 # os.environ['TRANSFORMERS_CACHE'] = '../'
-import ruamel.yaml as yaml
+# import ruamel.yaml as yaml
+from ruamel.yaml import YAML
 import numpy as np
 import random
 import time
@@ -579,15 +580,15 @@ if __name__ == '__main__':
     parser.add_argument('--caption_file', default='../caption_question_files/aokvqa_val_caption.json')
     parser.add_argument('--question_file', default='../caption_question_files/aokvqa_val_question.json')
     parser.add_argument('--question_ppl_file', default=None)
-    parser.add_argument('--answer_cap', default='') # candidate_cap
-    parser.add_argument('--rationale_cap', default='')  # MR_cap
-    parser.add_argument('--rationale_cap_g', default='') # AR_cap
-    parser.add_argument('--answer_know0', default='') # candidate_short
-    parser.add_argument('--rationale_know0', default='') # MR_short
-    parser.add_argument('--rationale_know0_g', default='') # AR_short
-    parser.add_argument('--answer_know1', default='') # candidate_long
-    parser.add_argument('--rationale_know1', default='') # MR_long
-    parser.add_argument('--rationale_know1_g', default='') # AR_long
+    parser.add_argument('--answer_cap', default='./results/candidate_cap.json')
+    parser.add_argument('--rationale_cap', default='./results/MR_cap.json')  # MR_cap
+    parser.add_argument('--rationale_cap_g', default='./results/AR_cap.json') # AR_cap
+    parser.add_argument('--answer_know0', default='./results/candidate_short.json') # candidate_short
+    parser.add_argument('--rationale_know0', default='./results/MR_short.json') # MR_short # this is missing IDK why
+    parser.add_argument('--rationale_know0_g', default='./results/AR_short.json') # AR_short
+    parser.add_argument('--answer_know1', default='./results/candidate_long.json') # candidate_long
+    parser.add_argument('--rationale_know1', default='./results/MR_long.json') # MR_long
+    parser.add_argument('--rationale_know1_g', default='./results/AR_long.json') # AR_long
 
     parser.add_argument('--ans_dict_file', default='../caption_question_files/aokvqa_val_ans_to_cap_dict.json')
     parser.add_argument('--question_type', default='g_q', type=str)
@@ -633,7 +634,10 @@ if __name__ == '__main__':
 
 
     assert args.model_selection in ['opt-30b','opt-66b','opt-175b','opt-13b','opt-6.7b', 'mistral-7b', 'gemma-7b']
-    config = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
+    # config = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
+    yaml = YAML(typ='rt')
+    with open(args.config, 'r') as file:
+        config = yaml.load(file)
     config = update(config, args)
 
     args.result_dir = os.path.join(args.output_dir, 'result')
