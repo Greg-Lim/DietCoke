@@ -357,8 +357,8 @@ def pre_caption(caption, max_words):
 
     return caption
 
-from vqaTools.vqaEval import VQAEval
-from vqaTools.gqaEval import GQAEval
+from ..vqaTools.vqaEval import VQAEval
+from ..vqaTools.gqaEval import GQAEval
 import json
 import os
 import numpy as np
@@ -366,7 +366,7 @@ import torch
 import torch.distributed as dist
 import torch.nn.functional as F
 
-import utils
+from . import utils
 from tqdm import tqdm
 
 

@@ -17,7 +17,7 @@ from accelerate import init_empty_weights, dispatch_model, infer_auto_device_map
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 from huggingface_hub import snapshot_download
 
-from VL_captioning.rewrite.modeling_mistral import MistralForCausalLM
+from ..VL_captioning.rewrite.modeling_mistral import MistralForCausalLM
 
 # from transformers import T5TokenizerFast
 import logging
@@ -28,9 +28,9 @@ nlp = en_core_web_sm.load()
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 
-from vqaTools.vqa import VQA
+from .vqaTools.vqa import VQA
 
-import utils
+from . import utils
 #from dataset import create_dataset, create_sampler, create_loader, vqa_collate_fn
 
 import nltk

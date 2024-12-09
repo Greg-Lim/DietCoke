@@ -36,10 +36,10 @@ nlp = en_core_web_sm.load()
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 
-from vqaTools.vqa import VQA
+from .vqaTools.vqa import VQA
 
-import utils
-from dataset.utils import vqa_eval, save_result
+from .import utils
+from .dataset.utils import vqa_eval, save_result
 #from dataset import create_dataset, create_sampler, create_loader, vqa_collate_fn
 
 
