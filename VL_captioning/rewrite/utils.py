@@ -1196,7 +1196,7 @@ class GenerationMixin:
                 not is_torchdynamo_compiling()
                 and self.generation_config._from_model_config
                 and self.generation_config._original_object_hash == hash(self.generation_config)
-                and self.config._has_non_default_generation_parameters()
+                and self.config._get_non_default_generation_parameters()
             ):
                 new_generation_config = GenerationConfig.from_model_config(self.config)
                 if new_generation_config != self.generation_config:

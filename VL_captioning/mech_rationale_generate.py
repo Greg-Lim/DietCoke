@@ -2,6 +2,7 @@ import argparse
 import os
 # os.environ['TRANSFORMERS_CACHE'] = '../'
 import ruamel.yaml as yaml
+from ruamel.yaml import YAML
 import numpy as np
 import random
 import time
@@ -483,7 +484,7 @@ def evaluation(model, test_data,caption_dict,syn_question_dict,syn_answer_dict,a
 
         Context_Prompt = create_context_prompt(ans_dict_queid, syn_ans_queid, caption, config)
         Knowledge_Prompt = knowledge[str(question_id)]
-        Knowledge_Prompt = Knowledge_Prompt[:1000]
+        Knowledge_Prompt = Knowledge_Prompt[:1000] # take only the first 1000 characters
         if Knowledge_Prompt[-1] != '.': Knowledge_Prompt += '.'
         Task_Prompt = create_task_prompt(syn_question_queid, syn_ans_queid, syn_question_queid_next, config)
 
@@ -614,7 +615,8 @@ if __name__ == '__main__':
     parser.add_argument('--caption_file', default='../caption_question_files/aokvqa_val_caption.json')
     parser.add_argument('--question_file', default='../caption_question_files/aokvqa_val_question.json')
     parser.add_argument('--question_ppl_file', default=None)
-    parser.add_argument('--knowledge_file', default='./output_knowledge/mistral_inst/long/knowledge.json')
+    # parser.add_argument('--knowledge_file', default='./output_knowledge/mistral_inst/long/knowledge.json')
+    parser.add_argument('--knowledge_file', default='./results/long_knowledge.json')
     parser.add_argument('--ans_dict_file', default='../caption_question_files/aokvqa_val_ans_to_cap_dict.json')
     parser.add_argument('--question_type', default='g_q', type=str)
 
@@ -659,7 +661,8 @@ if __name__ == '__main__':
 
 
     assert args.model_selection in ['opt-30b','opt-66b','opt-175b','opt-13b','opt-6.7b', 'mistral-7b']
-    config = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
+    yaml = YAML(typ='rt')
+    config = yaml.load(open(args.config, 'r'))
     config = update(config, args)
 
     args.result_dir = os.path.join(args.output_dir, 'result')

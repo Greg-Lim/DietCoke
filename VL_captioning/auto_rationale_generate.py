@@ -2,6 +2,7 @@ import argparse
 import os
 # os.environ['TRANSFORMERS_CACHE'] = '../'
 import ruamel.yaml as yaml
+from ruamel.yaml import YAML
 import numpy as np
 import random
 import time
@@ -592,7 +593,8 @@ if __name__ == '__main__':
 
 
     assert args.model_selection in ['opt-30b','opt-66b','opt-175b','opt-13b','opt-6.7b', 'mistral-7b', 'mistral-7b-inst']
-    config = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
+    yaml = YAML(typ='rt')
+    config = yaml.load(open(args.config, 'r'))
     config = update(config, args)
 
     args.result_dir = os.path.join(args.output_dir, 'result')

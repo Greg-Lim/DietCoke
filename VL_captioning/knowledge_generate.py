@@ -1,7 +1,8 @@
 import argparse
 import os
 # os.environ['TRANSFORMERS_CACHE'] = '../'
-import ruamel.yaml as yaml
+# import ruamel.yaml as yaml
+from ruamel.yaml import YAML
 import numpy as np
 import random
 import time
@@ -245,6 +246,7 @@ def create_generated_question_dic(question_data):
     return syn_question_dict,syn_answer_dict
 
 def create_context_prompt(ans_dict_queid,syn_ans_queid,caption,config):
+    # takes num_caps_per_img captions from the caption list with the 30 least frequest words
     Context_Prompt = ""
     mycontexts_id = []
     for idx in range(config['num_caps_per_img']):
@@ -361,7 +363,7 @@ def evaluation(model, test_data,caption_dict,syn_question_dict,syn_answer_dict,a
         result = {}
 
     for n, per_test_data in enumerate(metric_logger.log_every(test_data, print_freq, header)):
-
+        # This is the main proccessing loop
         # print(per_test_data)
         question = per_test_data['question'].lower().strip()
         question_id = per_test_data['question_id']
@@ -382,9 +384,11 @@ def evaluation(model, test_data,caption_dict,syn_question_dict,syn_answer_dict,a
         generated_ids = model.generate(model_inputs, max_new_tokens=1000, do_sample=True)
         decoded = tokenizer.batch_decode(generated_ids)
         full_text = decoded[0]
+        # full_text: '"<s> [INST] You are going to answer questions according to the contexts:Guy riding a harley davidson motorcycle through the bushes.A man riding a motorcycle with a very nice helmet on.Two people, one riding a motorcycle, are shown.Motorcycle riding behind man on the back of motorcycle.A man is driving a motorcycle that was covered in mud.A man has a helmet on on leaning on a motorcycle.A man wearing a helmet on the front of a motorcycle.Two men wearing bike helmets riding helmets on his motorcycle.A man in helmet riding on a motorcycle.A man riding a motorcycle wearing a helmet.A man is riding a motorcycle in the street next to another persons.Two people on a motor scooter with a back pack on a vehicle.A man with a tattoo is on a motorcycle.This is a couple of people riding a motorcycle.Two men on motor cycles looking at a man in glasses.This motorcycle with tattooed men is being filmed.A couple of men riding on the back of a motorcycle.Someone on a motorcycle with a reflection of their car.Motor bike with helmet, a man wearing a helmet riding on a motorcycle. [/INST] Ok, please go ahead and ask your question.</s> [INST] What type of vehicle is parked behind a bush full of bushes? [/INST] motorcycle</s> [INST] What is parked behind a bush full of bushes? [/INST] a motorcycle</s> [INST] Who is riding a motorcycle with a backpack and a motorcycle? [/INST] man</s> [INST] Who is riding a motorcycle with a backpack and a motorcycle? [/INST] a man</s> [INST] What is a man doing on a motorcycle? [/INST] riding</s> [INST] What is visible on a motorcycle? [/INST] helmet</s> [INST] How many people are riding on a motorcycle? [/INST] two</s> [INST] Who is riding on a motorcycle? [/INST] people</s> [INST] What is visible on a motorcycle? [/INST] a helmet</s> [INST] Who is riding a motorcycle? [/INST] men</s> [INST] What are two people riding motorcycles wearing? [/INST] helmets</s> [INST] Who is riding a motorcycle? [/INST] person</s> [INST] What are two people riding on a street? [/INST] motorcycles</s> [INST] What type of vehicle is parked behind a bush full of bushes? [/INST] bike</s> [INST] How is a man riding a motorcycle? [/INST] wearing</s> [INST] What is on the arm of the man riding a motorcycle? [/INST] tattoos</s> [INST] How many people are riding on a motorcycle? [/INST] two people</s> [INST] How many people are riding on a motorcycle? [/INST] two men</s> [INST] Where are two people riding a motorcycle? [/INST] street</s> [INST] Who is riding a motorcycle with a helmet on? [/INST] a person</s> [INST] Where is a man riding a motorcycle in a city? [/INST] reflection</s> [INST] Who is riding a motorcycle with a helmet on? [/INST] guy</s> [INST] What is the name of the person riding a motorcycle with a helmet on? [/INST] rider</s> [INST] Where is a man riding a motorcycle looking out? [/INST] window</s> [INST] What is the condition of the motorcycle? [/INST] parked</s> [INST] What are two men doing on a motorcycle? [/INST] driving</s> [INST] How are the two men on a motorcycle? [/INST] sitting</s> [INST] What is a man wearing on a motorcycle? [/INST] sunglasses</s> [INST] A man riding his motorcycle through the reflection of what? [/INST] car</s> [INST] Where is a man riding on a motorcycle? [/INST] front</s> [INST] what is in the motorcyclist's mouth? [/INST] I don't have enough knowledge to answer this question.</s> [INST] Please provide background knowledge related to this question in a single sentence. [/INST] A motorcyclist wears protective gear, including a helmet, while operating a motorcycle.\n\nBackground knowledge: A motorcycle is a motor vehicle that typically has two wheels and requires the rider to sit directly on the bike and use foot pedals for steering. Motorcyclists often wear protective gear such as helmets, jackets, pants, and gloves to minimize injuries in case of an accident.</s>"'
         knowledge = decoded[0].split("[/INST]")[-1]
         knowledge = knowledge.split("</s>")[0]
         knowledge = knowledge.replace("\n", " ")
+        # knowledge: ' A motorcyclist wears protective gear, including a helmet, while operating a motorcycle.  Background knowledge: A motorcycle is a motor vehicle that typically has two wheels and requires the rider to sit directly on the bike and use foot pedals for steering. Motorcyclists often wear protective gear such as helmets, jackets, pants, and gloves to minimize injuries in case of an accident.'
 
         process_logger.info(f"ques_id: {question_id}  question: {question} gt_answer: {per_test_data['answer']} captions: {Context_Prompt} knowledge: {knowledge}\n")
         result[str(question_id)] = knowledge
@@ -527,7 +531,9 @@ if __name__ == '__main__':
 
 
     assert args.model_selection in ['opt-30b','opt-66b','opt-175b','opt-13b','opt-6.7b', 'mistral-7b', 'mistral-7b-inst']
-    config = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
+    yaml = YAML(typ='rt')
+    with open(args.config, 'r') as file:
+        config = yaml.load(file)
     config = update(config, args)
 
     args.result_dir = os.path.join(args.output_dir, 'result')
