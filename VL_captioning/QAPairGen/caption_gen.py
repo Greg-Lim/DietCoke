@@ -2,6 +2,7 @@ import base64
 from io import BytesIO
 import time
 from transformers import Blip2ForConditionalGeneration, AutoProcessor
+from vllm import SamplingParams
 import torch
 from PIL import Image
 import requests
@@ -33,7 +34,9 @@ def _generate_multiple_captions_hf(processor, model, image, num_captions, **kwar
     captions = processor.batch_decode(generated_ids, skip_special_tokens=True)
     return captions
 
-def _generate_multiple_captions_vllm(client, model, sampling_params, image, num_captions):
+def _generate_multiple_captions_vllm(client, model, image, num_captions, sampling_params=None):
+    if sampling_params is None:
+        sampling_params = SamplingParams(temperature=0.6)
     buffered = BytesIO()
     image.save(buffered, format="JPEG")
     img_bytes = buffered.getvalue()
@@ -52,9 +55,9 @@ def _generate_multiple_captions_vllm(client, model, sampling_params, image, num_
             ]
         }]
 
-    outputs = client.chat.completions.create(model=model, messages=messages, temperature=sampling_params.temperature, n=num_captions)
+    outputs = client.chat.completions.create(model=model, messages=messages, temperature=sampling_params.temperature, n=num_captions, max_completion_tokens=100)
     print(outputs)
-    return [output.message.content for output in outputs.choices]
+    return [output.message.content+"." for output in outputs.choices]
 
     
 if __name__ == "__main__":

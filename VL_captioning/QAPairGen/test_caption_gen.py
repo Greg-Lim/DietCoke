@@ -5,7 +5,7 @@ from transformers import AutoProcessor, Blip2ForConditionalGeneration
 import torch
 from PIL import Image
 import requests
-from caption_gen import generate_multiple_captions
+from caption_gen import generate_multiple_captions, _generate_multiple_captions_vllm
 from vllm import LLM, SamplingParams
 
 
@@ -55,6 +55,22 @@ def test_vllm_generate_multiple_captions(client, image):
     num_captions = 10
     sampling_params = SamplingParams(temperature=0.2)
     captions = generate_multiple_captions(engine="vllm", model= "Salesforce/blip2-opt-2.7b", client=client, image=image, num_captions=num_captions, sampling_params=sampling_params)
+    print("vllm Captions:", captions)
+    print("Total Unique:", len(set(captions)))
+    assert isinstance(captions, list)
+    assert len(captions) == num_captions
+    unique_captions = len(set(captions))
+    if unique_captions < num_captions / 2:
+        print("Warning: Less than half of the captions are unique.")
+    for caption in captions:
+        assert isinstance(caption, str)
+        assert len(caption) > 0
+
+# pytest -v VL_captioning/QAPairGen/test_caption_gen.py -k test__generate_multiple_captions_vllm -s
+def test__generate_multiple_captions_vllm(client, image):
+    num_captions = 10
+    sampling_params = SamplingParams(temperature=0.2)
+    captions = _generate_multiple_captions_vllm(client, "Salesforce/blip2-opt-2.7b", image, num_captions, sampling_params)
     print("vllm Captions:", captions)
     print("Total Unique:", len(set(captions)))
     assert isinstance(captions, list)

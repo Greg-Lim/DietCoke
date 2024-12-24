@@ -357,8 +357,8 @@ def pre_caption(caption, max_words):
 
     return caption
 
-from ..vqaTools.vqaEval import VQAEval
-from ..vqaTools.gqaEval import GQAEval
+from vqaTools.vqaEval import VQAEval
+from vqaTools.gqaEval import GQAEval
 import json
 import os
 import numpy as np

@@ -1,7 +1,5 @@
 
 import time
-import caption_gen as caption_gen
-import word_to_caption as word_to_caption
 import re
 from openai import OpenAI
 from vllm import SamplingParams
@@ -51,7 +49,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
     
 #     return qa_pairs
 
-prompt = """
+prompt1 = """
         This is an image caption: {caption}. Based only on the information in the caption, write one simple question and a one-word answer in the exact format:
         Question: <question text> Answer: <one-word answer>
 
@@ -59,6 +57,15 @@ prompt = """
 
         Now, based on the provided caption, generate your response.
         """
+regex1 = r"Question:\s*(.+?)\s*Answer:\s*(\w+)"
+
+prompt2 = """
+    This is an image caption: {caption}. Based only on the information in the caption, create a JSON object containing a single key-value pair. The key should be "q" for the question, and "a" for the one-word answer. The JSON object should be in the exact format:
+    {{ "q": "<question text>", "a": "<one-word answer>"}}
+    Do not include any additional information, context, or explanations. Now, based on the provided caption, generate your response.
+"""
+
+regex2 = r'{\s*"q":\s*"(.+?)",\s*"a":\s*"(\w+)"\s*}'
 
 def generate_qa_pairs(engine, captions, **kwargs):
     if engine == "huggingface":
@@ -107,7 +114,7 @@ def _generate_qa_pairs_vllm_chat_completion_linear(client, model, captions, samp
         messages = [{
             "role": "user",
             "content": [
-                {"type": "text", "text": prompt.format(caption=caption)},
+                {"type": "text", "text": prompt1.format(caption=caption)},
             ],
         }]
 
@@ -122,13 +129,14 @@ def _generate_qa_pairs_vllm_chat_completion_linear(client, model, captions, samp
 
 
 def _generate_qa_pairs_vllm_chat_completion_multithreading(client, model, captions, sampling_params):
+    print("Captions:", captions)
     # 30 QA pairs in 6 seconds
     qa_pairs = []
     def multi_threaded_chat_completion(caption):
         messages = [{
             "role": "user",
             "content": [
-                {"type": "text", "text": prompt.format(caption=caption)},
+                {"type": "text", "text": prompt1.format(caption=caption)},
             ],
         }]
         return client.chat.completions.create(model=model, messages=messages, temperature=sampling_params.temperature, max_tokens=64)
@@ -137,12 +145,15 @@ def _generate_qa_pairs_vllm_chat_completion_multithreading(client, model, captio
         outputs = list(executor.map(multi_threaded_chat_completion, captions))
 
     for output in outputs:
-        outputs = [output.message.content for output in output.choices]
-        for output in outputs:
-            match = re.search(r"Question:\s*(.+?)\s*Answer:\s*(\w+)", output)
-            if match:
-                question, answer = match.groups()
-                qa_pairs.append((question.strip(), answer.strip()))
+        output2 = [t.message.content for t in output.choices]
+        ouput_str = output2[0]
+        match = re.search(r"Question:\s*(.+?)\s*Answer:\s*(\w+)", ouput_str)
+        if match:
+            print(f"Match: {match.groups()}")
+            question, answer = match.groups()
+            qa_pairs.append((question.strip(), answer.strip()))
+        else:
+            print(f"No match: {ouput_str}")
     return qa_pairs
 
 def _generate_qa_pairs_vllm_batch(client, model, caption, sampling_params):
@@ -154,7 +165,7 @@ def _generate_qa_pairs_vllm_batch(client, model, caption, sampling_params):
         messages = [{
             "role": "assistant",
             "content": [
-                {"type": "text", "text": prompt.format(caption=caption)},
+                {"type": "text", "text": prompt1.format(caption=caption)},
             ],
         }]
         request_input_objects.append({"model": model, "messages": messages, "temperature": sampling_params.temperature})
@@ -173,7 +184,10 @@ def _generate_qa_pairs_vllm_batch(client, model, caption, sampling_params):
     )
     print(outputs)
 
-
+def generate_qa_pairs_oai_client(client, captions, sampling_params=None):
+    if sampling_params is None:
+        sampling_params = SamplingParams(temperature=0.2)
+    return _generate_qa_pairs_vllm_chat_completion_multithreading(client, "mistralai/Mistral-7B-Instruct-v0.2", captions, sampling_params) # needs to be less hard coded
 
 if __name__ == "__main__":
     # Load model and tokenizer
@@ -226,4 +240,9 @@ if __name__ == "__main__":
     tick = time.time()
     qa_pairs = generate_qa_pairs("vllm", captions, client=client, model="mistralai/Mistral-7B-v0.1", sampling_params=SamplingParams(temperature=0.2))
     print("Time taken vllm:", time.time() - tick)
+    print(qa_pairs)
+
+    tick = time.time()
+    qa_pairs = generate_qa_pairs_oai_client(client, captions, sampling_params=SamplingParams(temperature=0.2))
+    print("Time taken oai:", time.time() - tick)
     print(qa_pairs)
