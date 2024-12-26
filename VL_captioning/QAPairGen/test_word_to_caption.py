@@ -1,7 +1,10 @@
 import unittest
 from word_to_caption import map_words_to_captions
 
+# pytest -v VL_captioning/QAPairGen/test_word_to_caption.py -s
+
 class TestMapWordsToCaptions(unittest.TestCase):
+
     def test_basic_functionality(self):
         captions = ["This is a test caption", "Another example of a caption", "The quick brown fox jumps over the lazy dog on a sunny day."]
         expected_output = {'test': [0], 'caption': [0, 1], 'example': [1], 'quick': [2], 'brown': [2], 'fox': [2], 'jumps': [2], 'lazy': [2], 'dog': [2], 'sunny': [2], 'day': [2]}

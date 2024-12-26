@@ -35,9 +35,6 @@
             "request": "launch",
             "program": "mech_rationale_generate.py",
             "console": "integratedTerminal",
-            // "args": [
-            //     "--answer_file=the/path/to/candidate.json"
-            // ]
         },
         {
             "name": "Answer Fusion",

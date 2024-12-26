@@ -7,7 +7,9 @@ import os
 from collections import namedtuple
 
 import ruamel.yaml as yaml
-import cProfile
+from datasets import load_dataset
+
+ds = load_dataset("HuggingFaceM4/A-OKVQA", split="train+test+validation")
 
 
 Args = namedtuple('Args', [
@@ -44,7 +46,7 @@ args = Args(
     dataset='aokvqa',
     result_tag='',
     batch_size_test=1,
-    num_caps_per_img=30,
+    num_caps_per_img=60,
     num_question_per_img=30
 )
 
@@ -83,7 +85,10 @@ vqa_question_path = "/home/greg/FYP/dataset/vqa_data/v2_OpenEnded_mscoco_train20
 # pytest -s VL_captioning/test_agent_serve_offline_single.py
 def test_diet_coke_e2e():
     
-    qa = Dataset(image_path, vqa_annotations_path, vqa_question_path).get_image_and_qa(50)[30:35]
+    # qa = Dataset(image_path, vqa_annotations_path, vqa_question_path).get_image_and_qa(50)[30:35]
+
+    # qa = ds
+
 
     '''
     vllm serve Salesforce/blip2-opt-2.7b --dtype half --host localhost --port 8000 --chat-template ./vllm/examples/template_blip2.jinja --gpu-memory-utilization 0.3
@@ -116,21 +121,41 @@ def test_diet_coke_e2e():
     all_dict = {}
     all_dict["pred_ans"] = []
     all_dict["actual_ans"] = []
-    all_dict["image_id"] = []
+    all_dict["question_id"] = []
     all_dict["time_taken"] = []
-    for image, question, answers, image_id in qa:
+    for entry in ds:
+        # features: ['image', 'question_id', 'question', 'choices', 'correct_choice_idx', 'direct_answers', 'difficult_direct_answer', 'rationales'],
+        image = entry['image']
+        question_id = entry['question_id']
+        question = entry['question']
+        choices = entry['choices']
+        correct_choice_idx = entry['correct_choice_idx']
+        direct_answers = entry['direct_answers']
+        difficult_direct_answer = entry['difficult_direct_answer']
+        rationales = entry['rationales']
+        answers = entry['direct_answers']
+        
         tick = time.time()
         dc_ans = diet_coke_e2e(llm_client, vlm_client, image, question, config)
         all_dict["pred_ans"].append(dc_ans)
         all_dict["actual_ans"].append(answers)
-        all_dict["image_id"].append(image_id)
+        all_dict["question_id"].append(question_id)
         all_dict["time_taken"].append(time.time()-tick)
-        # print("Pred_ans:", dc_ans, "Actual_ans:", answers, "image_id:", image_id,  "Time taken:", time.time()-tick)
+
+        if True:
+            print("Question:", question)
+            print("Pred_ans:", dc_ans)
+            print("Actual_ans:", answers)
+            print("question_id:", question_id)
+            print("Time taken:", time.time()-tick)
+            print()
+            input("Press enter to continue")
 
     avg_time = sum(all_dict["time_taken"]) / len(all_dict["time_taken"])
     for i in range(len(all_dict["pred_ans"])):
-        print("Pred_ans:", all_dict["pred_ans"][i], "Actual_ans:", all_dict["actual_ans"][i], "image_id:", all_dict["image_id"][i],  "Time taken:", all_dict["time_taken"][i])
+        print("Pred_ans:", all_dict["pred_ans"][i], "Actual_ans:", all_dict["direct_answers"][i], "question_id:", all_dict["question_id"][i],  "Time taken:", all_dict["time_taken"][i])
     print("Average time taken:", avg_time, f"over {len(all_dict['time_taken'])} images")
+
 
 if __name__ == "__main__":
     test_diet_coke_e2e()

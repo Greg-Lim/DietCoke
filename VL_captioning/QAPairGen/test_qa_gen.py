@@ -1,20 +1,7 @@
 from openai import OpenAI
 import pytest
-from unittest.mock import MagicMock
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from vllm import LLM, SamplingParams
-from qa_gen import generate_qa_pairs
-
-
-@pytest.fixture(scope="module")
-def hf_tokenizer():
-    tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
-    return tokenizer
-
-@pytest.fixture(scope="module")
-def hf_model():
-    model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-v0.1")
-    return model
+from qa_gen import generate_qa_pairs_vllm
+from vllm import SamplingParams
 
 @pytest.fixture(scope="module")
 def client():
@@ -59,21 +46,16 @@ def captions():
         " a group of students working together on an assignment in the classroom. The teacher is standing behind them\n",
         " a group of children around the table with one girl pointing to something on paper while another child looks at her\n"
     ]
-    captions = captions[:3]
-    return captions
-    
-# pytest -v QAPairGen/test_qa_gen.py -k test_hf_generate_qa_pairs -s
-def test_hf_generate_qa_pairs(hf_model, hf_tokenizer, captions):
-    qa_pairs = generate_qa_pairs("huggingface", captions, model=hf_model, tokenizer=hf_tokenizer)
-    print("hf QA Pairs:", qa_pairs)
-    print("Total Unique:", len(set(qa_pairs)))
-    assert len(qa_pairs) == len(captions)
 
-# pytest -v QAPairGen/test_qa_gen.py -k test_vllm_generate_qa_pairs -s
+    return captions
+
+# pytest -v VL_captioning/QAPairGen/test_qa_gen.py -k test_vllm_generate_qa_pairs -s
 def test_vllm_generate_qa_pairs(client, captions):
-    qa_pairs = generate_qa_pairs("vllm", captions, model= "mistralai/Mistral-7B-v0.1", client=client)
+    model = "mistralai/Mistral-7B-Instruct-v0.2"
+    qa_pairs = generate_qa_pairs_vllm(client, model, captions, sampling_params=SamplingParams(temperature=0.2))
     print("vllm QA Pairs:", qa_pairs)
     print("Total Unique:", len(set(qa_pairs)))
+    print("Total Captions:", len(captions))
     assert len(qa_pairs) == len(captions)
 
 
