@@ -1,5 +1,4 @@
 import time
-from agent_serve_offline_single import diet_coke_e2e, update
 from PIL import Image
 import json
 from openai import OpenAI
@@ -84,7 +83,8 @@ vqa_question_path = "/home/greg/FYP/dataset/vqa_data/v2_OpenEnded_mscoco_train20
 
 # pytest -s VL_captioning/test_agent_serve_offline_single.py
 def test_diet_coke_e2e():
-    
+    from agent_serve_offline_custom import diet_coke_e2e, update
+
     # qa = Dataset(image_path, vqa_annotations_path, vqa_question_path).get_image_and_qa(50)[30:35]
 
     # qa = ds
@@ -157,5 +157,67 @@ def test_diet_coke_e2e():
     print("Average time taken:", avg_time, f"over {len(all_dict['time_taken'])} images")
 
 
+def test_diet_coke_e2e_lavis():
+    from agent_serve_offline_lavis import diet_coke_e2e_lavis, update
+    llm_client = OpenAI(
+        api_key="idk",
+        base_url="http://localhost:8001/v1",
+    )
+
+    import torch
+    from lavis.models import load_model_and_preprocess
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model, vis_processors, txt_processors = load_model_and_preprocess(name="img2prompt_vqa", model_type="base", is_eval=True, device=device)
+
+    
+
+    config_path = "./VL_captioning/configs/AOKVQA_caption.yaml"
+    print("Current directory:", os.getcwd())
+
+    yaml_loader = yaml.YAML(typ='rt')
+    with open(config_path, 'r') as file:
+        config = yaml_loader.load(file)
+    config = update(config, args)
+
+    all_dict = {}
+    all_dict["pred_ans"] = []
+    all_dict["actual_ans"] = []
+    all_dict["question_id"] = []
+    all_dict["time_taken"] = []
+    for entry in ds:
+        # features: ['image', 'question_id', 'question', 'choices', 'correct_choice_idx', 'direct_answers', 'difficult_direct_answer', 'rationales'],
+        image = entry['image']
+        question_id = entry['question_id']
+        question = entry['question']
+        choices = entry['choices']
+        correct_choice_idx = entry['correct_choice_idx']
+        direct_answers = entry['direct_answers']
+        difficult_direct_answer = entry['difficult_direct_answer']
+        rationales = entry['rationales']
+        answers = entry['direct_answers']
+        
+        tick = time.time()
+        dc_ans = diet_coke_e2e_lavis(llm_client, model, vis_processors, txt_processors, image, question, config)
+        all_dict["pred_ans"].append(dc_ans)
+        all_dict["actual_ans"].append(answers)
+        all_dict["question_id"].append(question_id)
+        all_dict["time_taken"].append(time.time()-tick)
+
+        if True:
+            print("Question:", question)
+            print("Pred_ans:", dc_ans)
+            print("Actual_ans:", answers)
+            print("question_id:", question_id)
+            print("Time taken:", time.time()-tick)
+            print()
+            input("Press enter to continue")
+
+    avg_time = sum(all_dict["time_taken"]) / len(all_dict["time_taken"])
+    for i in range(len(all_dict["pred_ans"])):
+        print("Pred_ans:", all_dict["pred_ans"][i], "Actual_ans:", all_dict["direct_answers"][i], "question_id:", all_dict["question_id"][i],  "Time taken:", all_dict["time_taken"][i])
+    print("Average time taken:", avg_time, f"over {len(all_dict['time_taken'])} images")
+
+
 if __name__ == "__main__":
-    test_diet_coke_e2e()
+    # test_diet_coke_e2e()
+    test_diet_coke_e2e_lavis()

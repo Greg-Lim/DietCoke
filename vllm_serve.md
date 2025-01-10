@@ -25,4 +25,10 @@ vllm serve "Salesforce/blip2-opt-2.7b" --dtype float16 --host localhost --port 8
 vllm serve "Salesforce/blip2-opt-2.7b" --dtype float16 --host localhost --port 8000 --chat-template vllm_templates/template_blip2.jinja --gpu-memory-utilization 0.4 --enable-prefix-caching
 ```
 
+06 Jan
+``` bash
+vllm serve "mistralai/Mistral-7B-Instruct-v0.2" --dtype float16 --host localhost --port 8001 --chat-template vllm_templates/tool_chat_template_mistral_parallel.jinja --gpu-memory-utilization 0.6 --max-model-len 16384
+vllm serve "Salesforce/blip2-opt-2.7b" --dtype float16 --host localhost --port 8000 --chat-template vllm_templates/template_blip2.jinja --gpu-memory-utilization 0.4
+```
+
 Data set can be gotten from https://huggingface.co/datasets/HuggingFaceM4/A-OKVQA
