@@ -8,8 +8,21 @@ from collections import namedtuple
 import ruamel.yaml as yaml
 from datasets import load_dataset
 
-ds = load_dataset("HuggingFaceM4/A-OKVQA", split="train+test+validation")
+import os
 
+if "NCSS":
+    # Set the scratch folder path
+    scratch_folder = "/home/users/ntu/lims0286/scratch"
+
+    # Update environment variables
+    os.environ["NLTK_DATA"] = os.path.join(scratch_folder, "nltk_data")
+    os.environ["TRANSFORMERS_CACHE"] = os.path.join(scratch_folder, "transformers_cache")
+
+    # Ensure the directories exist
+    os.makedirs(os.environ["NLTK_DATA"], exist_ok=True)
+    os.makedirs(os.environ["TRANSFORMERS_CACHE"], exist_ok=True)
+
+ds = load_dataset("HuggingFaceM4/A-OKVQA", split="train+test+validation")
 
 Args = namedtuple('Args', [
     'config', 'caption_file', 'question_file', 'question_ppl_file', 'ans_dict_file', 'question_type', 
@@ -87,7 +100,7 @@ def test_diet_coke_e2e():
 
     # qa = Dataset(image_path, vqa_annotations_path, vqa_question_path).get_image_and_qa(50)[30:35]
 
-    # qa = ds
+    qa = ds
 
 
     '''

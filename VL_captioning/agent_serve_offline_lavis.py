@@ -961,6 +961,17 @@ def diet_coke_e2e_lavis(llm_client, lavis_model, lavis_vis_processors, lavis_txt
     print(lavis_samples['answers'])
     print(lavis_samples['ans_to_cap_dict'])
 
+    ans_dict_queid = lavis_samples['ans_to_cap_dict']
+    syn_question = lavis_samples['questions']
+    syn_answer = lavis_samples['answers']
+    captions = lavis_samples['captions'][0]
+    
+    long_knowledge, short_knowledge = Knowledge.knowledge_generate_single(llm_client, question, ans_dict_queid, syn_question, captions, syn_answer, config)#ans_dict, syn_answer, captions, syn_question, config)
+    pred_answer_long, pred_answer_short, pred_answer_cap = AnswerCandidates.answer_candidates_generate_single(llm_client, question, ans_dict_queid, syn_question, captions, syn_answer, config, long_knowledge, short_knowledge)
+    rationale_long, rationale_short, rationale_cap = AutoRationales.auto_rationale_generate_single(llm_client, question, pred_answer_long, pred_answer_short, pred_answer_cap, ans_dict_queid, syn_question, captions, syn_answer, config)
+    final_answer = AnswerFusion.answer_fusion_single(llm_client, question, pred_answer_cap, rationale_cap, pred_answer_long, rationale_long, pred_answer_short, rationale_short, ans_dict_queid, syn_question, captions, syn_answer, config)
+    return final_answer
+
 def main(args, config):
 
     #### Dataset ####
