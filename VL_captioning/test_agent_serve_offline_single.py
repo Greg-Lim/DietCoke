@@ -10,17 +10,17 @@ from datasets import load_dataset
 
 import os
 
-if "NCSS":
-    # Set the scratch folder path
-    scratch_folder = "/home/users/ntu/lims0286/scratch"
+# if "NCSS":
+#     # Set the scratch folder path
+#     scratch_folder = "/home/users/ntu/lims0286/scratch"
 
-    # Update environment variables
-    os.environ["NLTK_DATA"] = os.path.join(scratch_folder, "nltk_data")
-    os.environ["TRANSFORMERS_CACHE"] = os.path.join(scratch_folder, "transformers_cache")
+#     # Update environment variables
+#     os.environ["NLTK_DATA"] = os.path.join(scratch_folder, "nltk_data")
+#     os.environ["TRANSFORMERS_CACHE"] = os.path.join(scratch_folder, "transformers_cache")
 
-    # Ensure the directories exist
-    os.makedirs(os.environ["NLTK_DATA"], exist_ok=True)
-    os.makedirs(os.environ["TRANSFORMERS_CACHE"], exist_ok=True)
+#     # Ensure the directories exist
+#     os.makedirs(os.environ["NLTK_DATA"], exist_ok=True)
+#     os.makedirs(os.environ["TRANSFORMERS_CACHE"], exist_ok=True)
 
 ds = load_dataset("HuggingFaceM4/A-OKVQA", split="train+test+validation")
 
@@ -181,8 +181,6 @@ def test_diet_coke_e2e_lavis():
     from lavis.models import load_model_and_preprocess
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model, vis_processors, txt_processors = load_model_and_preprocess(name="img2prompt_vqa", model_type="base", is_eval=True, device=device)
-
-    
 
     config_path = "./VL_captioning/configs/AOKVQA_caption.yaml"
     print("Current directory:", os.getcwd())

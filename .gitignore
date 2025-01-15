@@ -127,6 +127,7 @@ celerybeat.pid
 env/
 venv/
 vllm_lavis/
+lavis_serve/
 ENV/
 *venv
 env.bak/
