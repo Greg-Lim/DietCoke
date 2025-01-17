@@ -947,21 +947,15 @@ class AnswerFusion():
         print(f"question: {question}  final_answer: {pred_answer}\n")
         return pred_answer
 
-def diet_coke_e2e_lavis(llm_client, lavis_model, lavis_vis_processors, lavis_txt_processors, image, question, config):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    lavis_image = lavis_vis_processors["eval"](image).unsqueeze(0).to(device)
-    lavis_question = lavis_txt_processors["eval"](question)
-    lavis_samples = {"image": lavis_image, "text_input": [lavis_question]}
-    lavis_samples = lavis_model.forward_itm(samples=lavis_samples)
-    lavis_samples = lavis_model.forward_cap(samples=lavis_samples, num_captions=50, num_patches=20)
-    lavis_samples = lavis_model.forward_qa_generation(lavis_samples)
+def diet_coke_e2e_lavis_serve(llm_client, get_lavis_smaples, image, question, config):
+    lavis_samples = get_lavis_smaples(image, question)
 
     print(lavis_samples['captions'][0])
     print(lavis_samples['questions'])
     print(lavis_samples['answers'])
     print(lavis_samples['ans_to_cap_dict'])
 
-    input("Paused")
+    input("After LAVIS samples, press Enter to continue...")
 
     ans_dict_queid = lavis_samples['ans_to_cap_dict']
     syn_question = lavis_samples['questions']

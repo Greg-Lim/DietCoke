@@ -18,8 +18,10 @@ def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/generate_caption_qa")
+@app.post("/generate_caption_qa")
 async def generate_caption_qa(file: UploadFile = File(...), question: str = Form(...)):
+    print("file:", file)
+    print("question:", question)
     image_bytes = await file.read()
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 

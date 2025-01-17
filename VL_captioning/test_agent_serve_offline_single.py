@@ -228,7 +228,81 @@ def test_diet_coke_e2e_lavis():
         print("Pred_ans:", all_dict["pred_ans"][i], "Actual_ans:", all_dict["direct_answers"][i], "question_id:", all_dict["question_id"][i],  "Time taken:", all_dict["time_taken"][i])
     print("Average time taken:", avg_time, f"over {len(all_dict['time_taken'])} images")
 
+from io import BytesIO
+import requests
+def test_diet_coke_e2e_lavis_serve():
+    from agent_serve_offline_lavis_serve import diet_coke_e2e_lavis_serve, update
+    
+    llm_client = OpenAI(
+        api_key="idk",
+        base_url="http://localhost:8001/v1",
+    )
+
+    lavis_url = "http://localhost:8000"
+    def get_lavis_smaples(image, question):
+        image_bytes = BytesIO()
+        image.save(image_bytes, format="JPEG")
+        image_bytes.seek(0)
+
+        files = {
+            "file": ("image.jpg", image_bytes, "image/jpeg"),
+        }
+        data = {
+            "question": question,
+        }
+
+        response = requests.post(f"{lavis_url}/generate_caption_qa", files=files, data=data)
+        response.raise_for_status()
+        return response.json()
+    
+    config_path = "./VL_captioning/configs/AOKVQA_caption.yaml"
+    print("Current directory:", os.getcwd())
+
+    yaml_loader = yaml.YAML(typ='rt')
+    with open(config_path, 'r') as file:
+        config = yaml_loader.load(file)
+    config = update(config, args)
+
+    all_dict = {}
+    all_dict["pred_ans"] = []
+    all_dict["actual_ans"] = []
+    all_dict["question_id"] = []
+    all_dict["time_taken"] = []
+    for entry in ds:
+        # features: ['image', 'question_id', 'question', 'choices', 'correct_choice_idx', 'direct_answers', 'difficult_direct_answer', 'rationales'],
+        image = entry['image']
+        question_id = entry['question_id']
+        question = entry['question']
+        choices = entry['choices']
+        correct_choice_idx = entry['correct_choice_idx']
+        direct_answers = entry['direct_answers']
+        difficult_direct_answer = entry['difficult_direct_answer']
+        rationales = entry['rationales']
+        answers = entry['direct_answers']
+        
+        tick = time.time()
+        dc_ans = diet_coke_e2e_lavis_serve(llm_client, get_lavis_smaples, image, question, config)
+        all_dict["pred_ans"].append(dc_ans)
+        all_dict["actual_ans"].append(answers)
+        all_dict["question_id"].append(question_id)
+        all_dict["time_taken"].append(time.time()-tick)
+
+        if True:
+            print("Question:", question)
+            print("Pred_ans:", dc_ans)
+            print("Actual_ans:", answers)
+            print("question_id:", question_id)
+            print("Time taken:", time.time()-tick)
+            print()
+            input("Press enter to continue")
+
+    avg_time = sum(all_dict["time_taken"]) / len(all_dict["time_taken"])
+    for i in range(len(all_dict["pred_ans"])):
+        print("Pred_ans:", all_dict["pred_ans"][i], "Actual_ans:", all_dict["direct_answers"][i], "question_id:", all_dict["question_id"][i],  "Time taken:", all_dict["time_taken"][i])
+    print("Average time taken:", avg_time, f"over {len(all_dict['time_taken'])} images")
+
 
 if __name__ == "__main__":
     # test_diet_coke_e2e()
-    test_diet_coke_e2e_lavis()
+    # test_diet_coke_e2e_lavis()
+    test_diet_coke_e2e_lavis_serve()
