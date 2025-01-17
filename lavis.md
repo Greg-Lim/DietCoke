@@ -34,3 +34,5 @@ python -m spacy download en_core_web_sm
 ```bash
 pip install -e LAVIS
 ```
+
+fastapi dev lavis_serve.py
