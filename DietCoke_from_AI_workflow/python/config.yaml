@@ -1,0 +1,14 @@
+
+random_config: true
+num_question_per_img: 30
+random_question: false
+
+dataset: 'aokvqa'
+question_type: 'g_q'
+num_caps_per_img: 30
+
+llm_model: 'mistralai/Mistral-7B-Instruct-v0.2'
+
+image_folder_path: 'third_party/LLMLoadgen/datasets/DietCoke/ok_vqa_data/train2014'
+
+aokvqa_caption_question_files_path: '/home/greg/AI-workflow-benchmark/third_party/LLMLoadgen/datasets/DietCoke/aokvqa/caption_question_files'
