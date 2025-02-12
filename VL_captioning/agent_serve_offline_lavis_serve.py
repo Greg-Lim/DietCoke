@@ -6,8 +6,9 @@ from torch.utils.data import DataLoader
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 import logging
-import utils
-from dataset.utils import save_result
+# import .utils
+from . import utils
+# from dataset.utils import save_result
 import json
 import random
 import openai
@@ -20,7 +21,7 @@ import argparse
 import nltk
 from nltk.stem import WordNetLemmatizer
 from pathlib import Path
-from transformers import AutoTokenizer
+# from transformers import AutoTokenizer
 
 nlp = en_core_web_sm.load()
 
