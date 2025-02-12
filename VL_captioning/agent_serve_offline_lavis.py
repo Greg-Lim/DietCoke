@@ -961,8 +961,6 @@ def diet_coke_e2e_lavis(llm_client, lavis_model, lavis_vis_processors, lavis_txt
     print(lavis_samples['answers'])
     print(lavis_samples['ans_to_cap_dict'])
 
-    input("Paused")
-
     ans_dict_queid = lavis_samples['ans_to_cap_dict']
     syn_question = lavis_samples['questions']
     syn_answer = lavis_samples['answers']
